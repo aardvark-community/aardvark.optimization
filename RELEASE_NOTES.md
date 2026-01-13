@@ -1,3 +1,5 @@
+### 0.9.50
+* added AddNumericDiffCostFunction
 * added SetParameterLower/UpperBound methods
 
 ### 0.9.49

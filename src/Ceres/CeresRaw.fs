@@ -22,6 +22,11 @@ type CeresSolverType =
     | IterativeSchur = 5
     | CGNR = 6
 
+type CeresNumericDiffMethod =
+    | Central = 0
+    | Forward = 1
+    | Ridder = 2
+
 [<StructLayout(LayoutKind.Sequential)>]
 type CeresOptions =
     struct
@@ -78,6 +83,12 @@ type CeresCostFunction =
     struct
         val mutable public Handle : nativeint
     end
+
+[<StructLayout(LayoutKind.Sequential)>]
+type CeresDynamicNumericDiffCostFunction =
+    struct
+        val mutable public Handle : nativeint
+    end
     
 [<StructLayout(LayoutKind.Sequential)>]
 type CeresLossFunctionHandle =
@@ -86,6 +97,8 @@ type CeresLossFunctionHandle =
     end
 
 type CeresCostFunctionDelegate = delegate of nativeptr<nativeptr<float>> * nativeptr<float> * nativeptr<nativeptr<float>> -> int
+
+type CeresDynamicNumericDiffCostFunctionDelegate = delegate of nativeptr<nativeptr<float>> * nativeptr<float> -> int
 
 [<Struct; StructLayout(LayoutKind.Sequential)>]
 type CeresCamera3d private (rx : float, ry : float, rz : float, tx : float, ty : float, tz : float) =
@@ -183,7 +196,9 @@ module CeresRaw =
     [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
     extern void cReleaseCostFunction(CeresCostFunction func)
 
-    // NOTE: actually AddResidualBlock
+    [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
+    extern CeresCostFunction cCreateDynamicNumericDiffCostFunction(int nParameterCount, int[] parameterCounts, int residualCount, CeresNumericDiffMethod diffMethod, double stepSize, nativeint delPtr)
+
     [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
     extern void cAddResidualFunction1(CeresProblem problem, CeresLossFunctionHandle loss, CeresCostFunction func, double* p0)
 

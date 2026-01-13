@@ -151,6 +151,35 @@ type Problem() =
             | [|p0; p1; p2; p3; p4; p5; p6; p7|] -> CeresRaw.cAddResidualFunction8(handle, loss, fhandle, p0, p1, p2, p3, p4, p5, p6, p7)
             | _ -> failwithf "too many parameter-blocks for cost function: %A" parameters.Length
             
+
+    member x.AddNumericDiffCostFunction(parameters : array<int * nativeptr<float>>, residualCount : int, loss : LossFunction, diffMethod : CeresNumericDiffMethod, numDiffStepSize : double, f : nativeptr<nativeptr<float>> * nativeptr<float> -> int, free : unit -> unit) =
+        let del = 
+            CeresDynamicNumericDiffCostFunctionDelegate(fun parameters residuals ->
+                f(parameters, residuals)
+            )
+
+        let gc = GCHandle.Alloc(del)
+        let ptr = Marshal.GetFunctionPointerForDelegate(del)
+        
+        let fhandle = CeresRaw.cCreateDynamicNumericDiffCostFunction(parameters.Length, Array.map fst parameters, residualCount, diffMethod, numDiffStepSize, ptr)
+        costFunctions.Add(fhandle, gc, { new IDisposable with member x.Dispose() = free() })
+
+        let loss = getLoss loss
+
+        match Array.map snd parameters with
+            | [||] -> failwith "cost function has no parameters"
+            | [|p0|] -> CeresRaw.cAddResidualFunction1(handle, loss, fhandle, p0)
+            | [|p0; p1|] -> CeresRaw.cAddResidualFunction2(handle, loss, fhandle, p0, p1)
+            | [|p0; p1; p2|] -> CeresRaw.cAddResidualFunction3(handle, loss, fhandle, p0, p1, p2)
+            | [|p0; p1; p2; p3|] -> CeresRaw.cAddResidualFunction4(handle, loss, fhandle, p0, p1, p2, p3)
+            | [|p0; p1; p2; p3; p4|] -> CeresRaw.cAddResidualFunction5(handle, loss, fhandle, p0, p1, p2, p3, p4)
+            | [|p0; p1; p2; p3; p4; p5|] -> CeresRaw.cAddResidualFunction6(handle, loss, fhandle, p0, p1, p2, p3, p4, p5)
+            | [|p0; p1; p2; p3; p4; p5; p6|] -> CeresRaw.cAddResidualFunction7(handle, loss, fhandle, p0, p1, p2, p3, p4, p5, p6)
+            | [|p0; p1; p2; p3; p4; p5; p6; p7|] -> CeresRaw.cAddResidualFunction8(handle, loss, fhandle, p0, p1, p2, p3, p4, p5, p6, p7)
+            | _ -> failwithf "too many parameter-blocks for cost function: %A" parameters.Length
+
+        ()
+
     member x.SetParameterLowerBound(block : Block, index : int, minValue : float) =
         CeresRaw.cSetParameterLowerBound(handle, block.Pointer, index, minValue)
 

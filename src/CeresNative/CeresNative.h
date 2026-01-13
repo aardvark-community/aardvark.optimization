@@ -58,7 +58,11 @@ typedef struct {
 	double P1;
 } CeresLossFunction;
 
-
+typedef enum {
+	Central = 0,
+	Forward = 1,
+	Ridders = 2,
+} CeresNumericDiffMethod;
 
 class CustomCostFunction : public CostFunction
 {
@@ -88,6 +92,24 @@ public:
 	}
 };
 
+struct MyNumericDiffCostFunctor {
+
+private:
+	int(*evaluate)(double const* const* parameters, double* residuals);
+
+public:
+	MyNumericDiffCostFunctor(int(*eval)(double const* const* parameters, double* residuals))
+	{
+		evaluate = eval;
+	}
+
+	bool operator()(double const* const* parameters, double* residuals) const {
+		if (evaluate(parameters, residuals))
+			return true;
+		else
+			return false;
+	}
+};
 
 
 DllExport(Problem*) cCreateProblem();
@@ -95,6 +117,8 @@ DllExport(void) cReleaseProblem(Problem* problem);
 
 DllExport(CustomCostFunction*) cCreateCostFunction(int nParameterBlocks, int* parameterCounts, int residualCount, int(*eval)(double const * const * parameters, double * residuals, double ** jacobians));
 DllExport(void) cReleaseCostFunction(CustomCostFunction* function);
+
+DllExport(ceres::DynamicCostFunction*) cCreateDynamicNumericDiffCostFunction(int nParameterBlocks, int* parameterCounts, int residualCount, CeresNumericDiffMethod diffMethod, double stepSize, int(*eval)(double const* const* parameters, double* residuals));
 
 DllExport(ceres::LossFunction*) cCreateLossFunction(CeresLossFunction loss);
 DllExport(void) cReleaseLossFunction(ceres::LossFunction* loss);

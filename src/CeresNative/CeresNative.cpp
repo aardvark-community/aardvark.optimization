@@ -65,6 +65,33 @@ DllExport(void) cReleaseCostFunction(CustomCostFunction* function)
 	if (function) delete function;
 }
 
+DllExport(ceres::DynamicCostFunction*) cCreateDynamicNumericDiffCostFunction(int nParameterBlocks, int* parameterCounts, int residualCount, CeresNumericDiffMethod diffMethod, double stepSize, int(*eval)(double const* const* parameters, double* residuals))
+{
+	disableGoogleLogging();
+	// NOTE: ceres takes ownership and we do not need to release this manually: 
+	//       it is released when the cost function is release, which is released when the problem is release
+	auto costFunctor = new MyNumericDiffCostFunctor(eval); 
+	ceres::DynamicCostFunction* costFun = NULL;
+
+	ceres::NumericDiffOptions opt;
+	opt.relative_step_size = stepSize;
+	
+	switch (diffMethod)
+	{
+	    case CeresNumericDiffMethod::Central: costFun = new ceres::DynamicNumericDiffCostFunction<MyNumericDiffCostFunctor, ceres::CENTRAL>(costFunctor, ceres::TAKE_OWNERSHIP, opt); break;
+	    case CeresNumericDiffMethod::Forward: costFun = new ceres::DynamicNumericDiffCostFunction<MyNumericDiffCostFunctor, ceres::FORWARD>(costFunctor, ceres::TAKE_OWNERSHIP, opt); break;
+	    case CeresNumericDiffMethod::Ridders: costFun = new ceres::DynamicNumericDiffCostFunction<MyNumericDiffCostFunctor, ceres::RIDDERS>(costFunctor, ceres::TAKE_OWNERSHIP, opt); break;
+	    default: return NULL;
+	}
+		
+	costFun->SetNumResiduals(residualCount);
+	for (int i = 0; i < nParameterBlocks; i++)
+	{
+		costFun->AddParameterBlock(parameterCounts[i]);
+	}
+	return costFun;
+}
+
 DllExport(void) cAddResidualFunction1(Problem* problem, ceres::LossFunction* loss, CustomCostFunction* cost, double* p0)
 {
 	disableGoogleLogging();
