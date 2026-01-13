@@ -183,6 +183,7 @@ module CeresRaw =
     [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
     extern void cReleaseCostFunction(CeresCostFunction func)
 
+    // NOTE: actually AddResidualBlock
     [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
     extern void cAddResidualFunction1(CeresProblem problem, CeresLossFunctionHandle loss, CeresCostFunction func, double* p0)
 
@@ -206,6 +207,12 @@ module CeresRaw =
 
     [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
     extern void cAddResidualFunction8(CeresProblem problem, CeresLossFunctionHandle loss, CeresCostFunction func, double* p0, double* p1, double* p2, double* p3, double* p4, double* p5, double* p6, double* p7)
+
+    [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
+    extern void cSetParameterLowerBound(CeresProblem problem, double* pBlock, int index, double minValue)
+
+    [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
+    extern void cSetParameterUpperBound(CeresProblem problem, double* pBlock, int index, double maxValue)
 
     [<DllImport(lib); SuppressUnmanagedCodeSecurity>]
     extern float cSolve(CeresProblem problem, CeresOptions* options, CeresTerminationType* termination, int* usable)

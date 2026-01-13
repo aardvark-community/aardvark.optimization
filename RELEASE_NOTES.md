@@ -1,3 +1,5 @@
+* added SetParameterLower/UpperBound methods
+
 ### 0.9.49
 * bundled LAPACK and BLAS libraries in Linux IpOpt build for full self-contained distribution
 

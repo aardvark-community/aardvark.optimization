@@ -113,6 +113,18 @@ DllExport(void) cAddResidualFunction8(Problem* problem, ceres::LossFunction* los
 	problem->AddResidualBlock(cost, loss, p0, p1, p2, p3, p4, p5, p6, p7);
 }
 
+DllExport(void) cSetParameterLowerBound(Problem* problem, double* pBlock, int index, double minValue)
+{
+	disableGoogleLogging();
+	problem->SetParameterLowerBound(pBlock, index, minValue);
+}
+
+DllExport(void) cSetParameterUpperBound(Problem* problem, double* pBlock, int index, double maxValue)
+{
+	disableGoogleLogging();
+	problem->SetParameterUpperBound(pBlock, index, maxValue);
+}
+
 DllExport(double) cSolve(Problem* problem, CeresOptions* options, ceres::TerminationType* status, int* usable)
 {
 	disableGoogleLogging();

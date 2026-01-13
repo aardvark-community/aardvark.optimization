@@ -151,6 +151,12 @@ type Problem() =
             | [|p0; p1; p2; p3; p4; p5; p6; p7|] -> CeresRaw.cAddResidualFunction8(handle, loss, fhandle, p0, p1, p2, p3, p4, p5, p6, p7)
             | _ -> failwithf "too many parameter-blocks for cost function: %A" parameters.Length
             
+    member x.SetParameterLowerBound(block : Block, index : int, minValue : float) =
+        CeresRaw.cSetParameterLowerBound(handle, block.Pointer, index, minValue)
+
+    member x.SetParameterUpperBound(block : Block, index : int, minValue : float) =
+        CeresRaw.cSetParameterUpperBound(handle, block.Pointer, index, minValue)
+
     member x.Solve(options : Config) =
         use termination = fixed [| CeresTerminationType.Convergence |]
         use usable = fixed [| 0 |]

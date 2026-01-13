@@ -108,6 +108,9 @@ DllExport(void) cAddResidualFunction6(Problem* problem, ceres::LossFunction* los
 DllExport(void) cAddResidualFunction7(Problem* problem, ceres::LossFunction* loss, CustomCostFunction* cost, double* p0, double* p1, double* p2, double* p3, double* p4, double* p5, double* p6);
 DllExport(void) cAddResidualFunction8(Problem* problem, ceres::LossFunction* loss, CustomCostFunction* cost, double* p0, double* p1, double* p2, double* p3, double* p4, double* p5, double* p6, double* p7);
 
+DllExport(void) cSetParameterLowerBound(Problem* problem, double* pBlock, int index, double minValue);
+DllExport(void) cSetParameterUpperBound(Problem* problem, double* pBlock, int index, double maxValue);
+
 DllExport(double) cSolve(Problem* problem, CeresOptions* options, ceres::TerminationType* status, int* usable);
 
 
