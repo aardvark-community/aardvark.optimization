@@ -13,10 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
@@ -35,6 +33,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./buildnative.sh x86_64
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - name: Restore Tools
         run: dotnet tool restore
       - name: Restore
@@ -52,10 +54,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
@@ -166,10 +166,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
@@ -205,10 +203,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
