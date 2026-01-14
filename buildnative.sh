@@ -8,7 +8,7 @@ ARCH_FLAGS=""
 
 a="/$0"; a=${a%/*}; a=${a#/}; a=${a:-.}; BASEDIR=$(cd "$a"; pwd)
 
-dotnet nuget update source "GitHub" --username "aardvark-community" --password "$GITHUB_TOKEN" --store-password-in-clear-text
+mono .config/nuget.exe setApiKey -Source GitHub $GITHUB_TOKEN -NonInteractive
 
 rm -dfr .vcpkg
 mkdir .vcpkg

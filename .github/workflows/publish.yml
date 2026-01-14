@@ -13,19 +13,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
-          dotnet nuget add source
-          "https://nuget.pkg.github.com/aardvark-community/index.json"
-          --name "GitHub"
-          --username "aardvark-community"
-          --password "${{ secrets.GITHUB_TOKEN }}"
-          --store-password-in-clear-text
+          mono .config/nuget.exe
+          sources add
+          -source "https://nuget.pkg.github.com/aardvark-community/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "aardvark-community"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       # - name: Setup Fortran
       #   uses: awvwgk/setup-fortran@main
       #   with:
@@ -35,6 +34,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./buildnative.sh x86_64
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - name: Restore Tools
         run: dotnet tool restore
       - name: Restore
@@ -52,19 +55,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
-          dotnet nuget add source
-          "https://nuget.pkg.github.com/aardvark-community/index.json"
-          --name "GitHub"
-          --username "aardvark-community"
-          --password "${{ secrets.GITHUB_TOKEN }}"
-          --store-password-in-clear-text
+          mono .config/nuget.exe
+          sources add
+          -source "https://nuget.pkg.github.com/aardvark-community/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "aardvark-community"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       # - name: Setup Fortran
       #   uses: awvwgk/setup-fortran@main
       #   with:
@@ -74,6 +76,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./buildnative.sh arm64
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - name: Restore Tools
         run: dotnet tool restore
       - name: Restore
@@ -91,23 +97,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
-          dotnet nuget add source
-          "https://nuget.pkg.github.com/aardvark-community/index.json"
-          --name "GitHub"
-          --username "aardvark-community"
-          --password "${{ secrets.GITHUB_TOKEN }}"
-          --store-password-in-clear-text
+          mono .config/nuget.exe
+          sources add
+          -source "https://nuget.pkg.github.com/aardvark-community/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "aardvark-community"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       - name: Build Native Libraries
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./buildnative.sh
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - name: Restore Tools
         run: dotnet tool restore
       - name: Restore
@@ -166,19 +173,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
-          dotnet nuget add source
-          "https://nuget.pkg.github.com/aardvark-community/index.json"
-          --name "GitHub"
-          --username "aardvark-community"
-          --password "${{ secrets.GITHUB_TOKEN }}"
-          --store-password-in-clear-text
+          mono .config/nuget.exe
+          sources add
+          -source "https://nuget.pkg.github.com/aardvark-community/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "aardvark-community"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       - name: Install gfortran
         run: |
           brew install gcc
@@ -187,6 +193,10 @@ jobs:
           echo "FC=$FC" >> $GITHUB_ENV
       - name: Build IpOpt Native Libraries
         run: ./buildIpOptMac.sh x86_64
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - name: Restore Tools
         run: dotnet tool restore
       - name: Restore
@@ -205,19 +215,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          global-json-file: global.json
+      - name: Install Mono
+        run: brew install mono
       - name: 'Setup NuGet Credentials'
         shell: 'bash'
         run: >
-          dotnet nuget add source
-          "https://nuget.pkg.github.com/aardvark-community/index.json"
-          --name "GitHub"
-          --username "aardvark-community"
-          --password "${{ secrets.GITHUB_TOKEN }}"
-          --store-password-in-clear-text
+          mono .config/nuget.exe
+          sources add
+          -source "https://nuget.pkg.github.com/aardvark-community/index.json"
+          -storepasswordincleartext
+          -name "GitHub"
+          -username "aardvark-community"
+          -password "${{ secrets.GITHUB_TOKEN }}"
       - name: Install gfortran
         run: |
           brew install gcc
@@ -226,6 +235,10 @@ jobs:
           echo "FC=$FC" >> $GITHUB_ENV
       - name: Build IpOpt Native Libraries
         run: ./buildIpOptMac.sh arm64
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
       - name: Restore Tools
         run: dotnet tool restore
       - name: Restore
