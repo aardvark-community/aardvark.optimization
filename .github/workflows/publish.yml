@@ -9,7 +9,7 @@ on:
 jobs:
   ceres_mac_x64:
     name: Ceres MacOS (x64)
-    runs-on: macos-14-large
+    runs-on: macos-15-intel
     steps:  
       - name: Checkout
         uses: actions/checkout@v2
@@ -165,7 +165,7 @@ jobs:
   # IpOpt builds
   ipopt_mac_x64:
     name: IpOpt MacOS (x64)
-    runs-on: macos-14-large
+    runs-on: macos-15-intel
     steps:
       - name: Checkout
         uses: actions/checkout@v2
