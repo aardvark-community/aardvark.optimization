@@ -860,6 +860,8 @@ module IpOptBuilderImplementation =
                 EvalGradF (fun n x newX grad ->
                     if newX then updateCache x
                     let gradPtr = NativePtr.ofNativeInt grad
+                    for i in 0 .. n - 1 do
+                        NativePtr.set gradPtr i 0.0
                     // Write gradient values from automatic differentiation
                     for KeyValue(i, v) in oCache.Jacobian do
                         NativePtr.set gradPtr i v

@@ -1,3 +1,6 @@
+### 0.9.51
+* IpOpt: fixed eval_grad_f leaving gradient entries of constraint-only variables uninitialized (intermittent "Invalid number in NLP function or derivative detected" and corrupted gradient steps)
+
 ### 0.9.50
 * added AddNumericDiffCostFunction
 * added SetParameterLower/UpperBound methods
