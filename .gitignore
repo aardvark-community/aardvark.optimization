@@ -47,3 +47,4 @@ src/CeresNative/*.o
 /src/CeresNative/build/
 /libs/Native/Ceres
 .idea/
+bin
