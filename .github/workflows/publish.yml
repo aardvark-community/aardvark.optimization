@@ -121,7 +121,9 @@ jobs:
           path: libs/Native/Ceres/linux/AMD64/
   ceres_windows_x64:
     name: Ceres Windows (x64)
-    runs-on: windows-latest 
+    # pinned: the VS 2026 image (windows-latest since 2026-06) cannot build
+    # the vcpkg port set pinned in buildnative.cmd
+    runs-on: windows-2022
     steps:  
       - name: Checkout
         uses: actions/checkout@v2 
