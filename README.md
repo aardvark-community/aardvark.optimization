@@ -1,4 +1,4 @@
-# CeresSharp
+# Aardvark.Optimization
 
 F# wrappers for [Ceres Solver](http://ceres-solver.org/) and [IpOpt](https://coin-or.github.io/Ipopt/) with aardvark-style native dependencies.
 
@@ -69,7 +69,7 @@ printfn "status: %A, objective: %.4f" status objective
 ### Prerequisites
 
 * `cmake`
-* `dotnet >= 6.0`
+* `dotnet >= 10.0`
 * C/C++ compiler
 
 ### Steps

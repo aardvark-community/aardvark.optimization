@@ -48,3 +48,4 @@ src/CeresNative/*.o
 /libs/Native/Ceres
 .idea/
 bin
+*.DotSettings.user
