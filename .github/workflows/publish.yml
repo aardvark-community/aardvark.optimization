@@ -6,10 +6,61 @@ on:
     paths:
       - RELEASE_NOTES.md
       - .github/workflows/publish.yml
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
 jobs:
+  release-check:
+    name: Check for Release
+    runs-on: ubuntu-latest
+    outputs:
+      should-skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Dotnet
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore Tools
+        run: dotnet tool restore
+
+      - name: Check if release exists
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(dotnet aardpack --parse-only)
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "Error: dotnet aardpack --parse-only failed with exit code $EXIT_CODE"
+            exit 1
+          fi
+
+          if [ -z "$VERSION" ]; then
+            echo "Error: dotnet aardpack --parse-only returned an empty string"
+            exit 1
+          fi
+
+          if gh release view "$VERSION" >/dev/null 2>&1; then
+            echo "Release $VERSION exists. Setting skip to true."
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "Release $VERSION new. Setting skip to false."
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
   ceres_mac_x64:
     name: Ceres MacOS (x64)
     runs-on: macos-15-intel
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -60,6 +111,8 @@ jobs:
   ceres_mac_arm64:
     name: Ceres MacOS (arm64)
     runs-on: macos-14
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -106,6 +159,8 @@ jobs:
   ceres_linux_x64:
     name: Ceres Linux (x64)
     runs-on: ubuntu-22.04
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -150,7 +205,9 @@ jobs:
     # pinned: the VS 2026 image (windows-latest since 2026-06) cannot build
     # the vcpkg port set pinned in buildnative.cmd
     runs-on: windows-2022
-    steps:  
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
+    steps:
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -198,6 +255,8 @@ jobs:
   ipopt_mac_x64:
     name: IpOpt MacOS (x64)
     runs-on: macos-15-intel
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -243,6 +302,8 @@ jobs:
   ipopt_mac_arm64:
     name: IpOpt MacOS (arm64)
     runs-on: macos-14
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -291,6 +352,8 @@ jobs:
     # Ubuntu 18.04/20.04 runners are no longer available, so we use Docker.
     # Building in Ubuntu 18.04 ensures compatibility with older glibc and libstdc++.
     runs-on: ubuntu-22.04
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -392,6 +455,8 @@ jobs:
   ipopt_windows_x64:
     name: IpOpt Windows (x64)
     runs-on: windows-latest
+    needs: release-check
+    if: needs.release-check.outputs.should-skip != 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -556,9 +621,6 @@ jobs:
       - name: Install Dotnet
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: |
-            6.0.x
-            8.0.x
           global-json-file: global.json
 
       - name: Restore Tools
@@ -573,7 +635,7 @@ jobs:
       - name: Pack
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: dotnet aardpack src\Aardvark.Optimization.sln --notag --norelease --skip-build
+        run: dotnet aardpack src\Aardvark.Optimization.sln --skip-build
 
       - name: Upload Package
         uses: actions/upload-artifact@v7
