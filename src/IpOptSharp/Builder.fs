@@ -917,8 +917,54 @@ module IpOptBuilderImplementation =
                     true
                 )
                 
+            /// Callback for the (unused) Hessian of the Lagrangian; limited-memory approximation is used instead
+            let hessianFunc = EvalH(fun  _ _ _ _ _ _ _ _ _ _ _ -> false)
+
+            /// Callback invoked once per iteration: stops the solver once cancellation is requested, and passes
+            /// the current iterate to the user's iteration callback
+            let cancellation = options |> List.tryPick (function IpOptOption.Cancellation t -> Some t | _ -> None)
+            let iteration = options |> List.tryPick (function IpOptOption.Iteration f -> Some f | _ -> None)
+            // the problem handle is only known after creating the problem
+            let problem = ref 0n
+            // an exception must not unwind through the native solver: it stops the solver and is rethrown afterwards
+            let callbackError = ref (null : exn)
+            let intermediateFunc =
+                if cancellation.IsNone && iteration.IsNone then
+                    null
+                else
+                    Intermediate(fun _ iterCount _ _ _ _ _ _ _ _ _ _ ->
+                        try
+                            // the callback also sees the iterate the solver stops at, which is the returned result
+                            let continueSolving =
+                                match iteration with
+                                | Some callback ->
+                                    let current = Array.zeroCreate<float> state.VariableOffset
+                                    pin current <| fun pCurrent ->
+                                        let ok =
+                                            IpoptNative.GetIpoptCurrentIterate(
+                                                problem.Value, false,
+                                                state.VariableOffset, NativePtr.toNativeInt pCurrent, 0n, 0n,
+                                                state.ConstraintCount, 0n, 0n)
+                                        if ok then
+                                            for r in state.UpdateInput do r pCurrent
+                                            callback iterCount
+                                        else
+                                            true
+                                | None ->
+                                    true
+
+                            let cancelled =
+                                match cancellation with
+                                | Some token -> token.IsCancellationRequested
+                                | None -> false
+
+                            continueSolving && not cancelled
+                        with e ->
+                            callbackError.Value <- e
+                            false)
+
             let values = Array.zeroCreate<float> state.VariableOffset
-            
+
             pin values <| fun ptr ->
                 
                 let m = state.ConstraintCount
@@ -968,9 +1014,13 @@ module IpOptBuilderImplementation =
                                             constraintsFunc,
                                             objectiveGradientFunc,
                                             constraintJacobianFunc,
-                                            EvalH(fun  _ _ _ _ _ _ _ _ _ _ _ -> false)
+                                            hessianFunc
                                         )
-                                    
+
+                                    problem.Value <- handle
+                                    if handle <> 0n && not (isNull intermediateFunc) then
+                                        IpoptNative.SetIntermediateCallback(handle, intermediateFunc) |> ignore
+
                                     let tol = options |> List.tryPick (function IpOptOption.Tolerance t -> Some t | _ -> None) |> Option.defaultValue 1e-7
                                     let printLevel = options |> List.tryPick (function IpOptOption.PrintLevel l -> Some l | _ -> None) |> Option.defaultValue 0
                                     let maxIter = options |> List.tryPick (function IpOptOption.MaxIterations i -> Some i | _ -> None) |> Option.defaultValue 1000
@@ -1086,6 +1136,11 @@ module IpOptBuilderImplementation =
                                         | IpOptOption.QuasiNewtonUpdateType v ->
                                             IpoptNative.AddIpoptStrOption(handle, "hessian_approximation_space", v) |> ignore
 
+                                        // Registered as intermediate callback above
+                                        | IpOptOption.Cancellation _
+                                        | IpOptOption.Iteration _ ->
+                                            ()
+
                                         // Custom options
                                         | IpOptOption.String(k, v) ->
                                             IpoptNative.AddIpoptStrOption(handle, k, v) |> ignore
@@ -1127,6 +1182,9 @@ module IpOptBuilderImplementation =
                             multXUHandle.AddrOfPinnedObject(),
                             nativeint 0)
                         
+                        if not (isNull callbackError.Value) then
+                            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(callbackError.Value).Throw()
+
                         let returnStatus = enum<IpOptStatus>(status)
                         for r in state.UpdateInput do r ptr
                         
@@ -1134,11 +1192,21 @@ module IpOptBuilderImplementation =
                         let obj = if state.NegateObjective then -objVal.[0] else objVal.[0]
                         (returnStatus, obj)
                     finally
+                        IpoptNative.FreeIpoptProblem handle
                         gHandle.Free()
                         objValHandle.Free()
                         multGHandle.Free()
                         multXLHandle.Free()
                         multXUHandle.Free()
+
+                        // the native solver only holds function pointers: the delegates must not be
+                        // collected before IpoptSolve has returned
+                        GC.KeepAlive objectiveFunc
+                        GC.KeepAlive objectiveGradientFunc
+                        GC.KeepAlive constraintsFunc
+                        GC.KeepAlive constraintJacobianFunc
+                        GC.KeepAlive hessianFunc
+                        GC.KeepAlive intermediateFunc
                 else
                     (IpOptStatus.InternalError, System.Double.PositiveInfinity)
 

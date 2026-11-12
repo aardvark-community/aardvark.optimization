@@ -30,6 +30,13 @@ type IpOpt private() =
     /// Sets the maximum wall-clock time in seconds
     static member MaxWallTime(value : float) : IpOptOption =
         IpOptOption.MaxWallTime value
+    /// Stops the solver after the current iteration (status UserRequestedStop) once cancellation is requested
+    static member Cancellation(token : System.Threading.CancellationToken) : IpOptOption =
+        IpOptOption.Cancellation token
+    /// Called once per iteration with the iteration count, after the optimization variables were set to the
+    /// current iterate; returning false stops the solver (status UserRequestedStop)
+    static member Iteration(callback : int -> bool) : IpOptOption =
+        IpOptOption.Iteration callback
 
     // Convergence tolerance options
 

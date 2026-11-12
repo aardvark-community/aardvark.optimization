@@ -156,6 +156,13 @@ type IpOptOption =
     /// Type of quasi-Newton update formula (default: "bfgs")
     | QuasiNewtonUpdateType of string
 
+    // Cancellation
+    /// Stops the solver after the current iteration (status UserRequestedStop) once cancellation is requested
+    | Cancellation of System.Threading.CancellationToken
+    /// Called once per iteration with the iteration count, after the optimization variables were set to the
+    /// current iterate; returning false stops the solver (status UserRequestedStop)
+    | Iteration of (int -> bool)
+
     // Custom options (for any option not explicitly listed)
     /// Custom integer option (keyword, value)
     | Int of string * int

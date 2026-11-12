@@ -76,6 +76,25 @@ type EvalJacG = delegate of int * nativeint * bool * int * int * nativeint * nat
 type EvalH = delegate of int * nativeint * bool * float * int * nativeint * bool * int * nativeint * nativeint * nativeint -> bool
 
 /// <summary>
+/// Callback invoked by IPOPT once per iteration (also during the restoration phase).
+/// </summary>
+/// <param name="alg_mod">Algorithm mode: 0 = regular, 1 = restoration phase</param>
+/// <param name="iter_count">Current iteration count</param>
+/// <param name="obj_value">Unscaled objective value at the current point</param>
+/// <param name="inf_pr">Scaled primal infeasibility</param>
+/// <param name="inf_du">Scaled dual infeasibility</param>
+/// <param name="mu">Barrier parameter</param>
+/// <param name="d_norm">Infinity norm of the primal step</param>
+/// <param name="regularization_size">Regularization term of the Hessian</param>
+/// <param name="alpha_du">Dual step size</param>
+/// <param name="alpha_pr">Primal step size</param>
+/// <param name="ls_trials">Number of line search trials</param>
+/// <param name="user_data">Pointer to user data (unused)</param>
+/// <returns>True to continue, false to stop the solver (status UserRequestedStop)</returns>
+[<UnmanagedFunctionPointer(CallingConvention.Cdecl); SuppressUnmanagedCodeSecurity>]
+type Intermediate = delegate of int * int * float * float * float * float * float * float * float * float * int * nativeint -> [<MarshalAs(UnmanagedType.U1)>] bool
+
+/// <summary>
 /// Module containing P/Invoke declarations for the IPOPT C library functions.
 /// </summary>
 module IpoptNative =
@@ -151,6 +170,41 @@ module IpoptNative =
     /// <returns>1 on success, 0 on failure</returns>
     [<DllImport("ipopt", CallingConvention = CallingConvention.Cdecl); SuppressUnmanagedCodeSecurity>]
     extern int AddIpoptIntOption(nativeint ipopt_problem, string keyword, int value)
+
+    /// <summary>
+    /// Sets the callback invoked once per iteration; returning false from it stops the solver.
+    /// </summary>
+    /// <param name="ipopt_problem">Handle to the IPOPT problem</param>
+    /// <param name="intermediate_cb">The callback (must be kept alive until IpoptSolve returns)</param>
+    /// <returns>True on success</returns>
+    [<DllImport("ipopt", CallingConvention = CallingConvention.Cdecl); SuppressUnmanagedCodeSecurity>]
+    extern [<MarshalAs(UnmanagedType.U1)>] bool SetIntermediateCallback(nativeint ipopt_problem, Intermediate intermediate_cb)
+
+    /// <summary>
+    /// Reads the current iterate; only valid while the intermediate callback runs.
+    /// Pointers may be null for the values that are not needed.
+    /// </summary>
+    /// <param name="ipopt_problem">Handle to the IPOPT problem</param>
+    /// <param name="scaled">Whether to return the scaled (internal) or the unscaled values</param>
+    /// <param name="n">Number of variables</param>
+    /// <param name="x">Buffer for the variable values (n entries)</param>
+    /// <param name="z_L">Buffer for the lower bound multipliers (n entries)</param>
+    /// <param name="z_U">Buffer for the upper bound multipliers (n entries)</param>
+    /// <param name="m">Number of constraints</param>
+    /// <param name="g">Buffer for the constraint values (m entries)</param>
+    /// <param name="lambda">Buffer for the constraint multipliers (m entries)</param>
+    /// <returns>True on success</returns>
+    [<DllImport("ipopt", CallingConvention = CallingConvention.Cdecl); SuppressUnmanagedCodeSecurity>]
+    extern [<MarshalAs(UnmanagedType.U1)>] bool GetIpoptCurrentIterate(
+        nativeint ipopt_problem,
+        [<MarshalAs(UnmanagedType.U1)>] bool scaled,
+        int n,
+        nativeint x,
+        nativeint z_L,
+        nativeint z_U,
+        int m,
+        nativeint g,
+        nativeint lambda)
 
     /// <summary>
     /// Solves the optimization problem.
