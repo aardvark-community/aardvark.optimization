@@ -110,7 +110,7 @@ jobs:
 
   ceres_mac_arm64:
     name: Ceres MacOS (arm64)
-    runs-on: macos-14
+    runs-on: macos-15
     needs: release-check
     if: needs.release-check.outputs.should-skip != 'true'
     steps:
@@ -301,7 +301,7 @@ jobs:
 
   ipopt_mac_arm64:
     name: IpOpt MacOS (arm64)
-    runs-on: macos-14
+    runs-on: macos-15
     needs: release-check
     if: needs.release-check.outputs.should-skip != 'true'
     steps:
